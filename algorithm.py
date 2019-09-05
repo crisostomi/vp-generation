@@ -1,4 +1,5 @@
 import math
+import numpy as np
 from copy import deepcopy
 
 
@@ -28,8 +29,46 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
     return admissibile_params
 
 
-def choose_next_parameter(parameter_space, admissibile_params):
-    return None
+def choose_next_parameter(parameter_space, admissibile_params, b=2):
+    param_vector = np.random.choice(admissibile_params, 1)[0]
+
+    n = len(param_vector)
+    numbers = np.arange(1, n+1)
+    parameters_names = sorted(list(parameter_space.map.keys()))
+    probabilities = {h: h**(-b) for h in numbers}
+
+    np.random.shuffle(numbers)
+
+    number_of_components_to_be_changed = 0
+    while number_of_components_to_be_changed == 0:
+        for i in range(0, n):
+            h = numbers[i]
+            prob_h = probabilities[h]
+            if np.random.random() <= prob_h:
+                number_of_components_to_be_changed = h
+
+        np.random.shuffle(numbers)
+
+    compontents_to_be_changed = np.random.choice(np.arange(0, n), number_of_components_to_be_changed)
+    new_vector = dict()
+    for i in range(n):
+        param = parameters_names[i]
+        if i in compontents_to_be_changed:
+            value = parameter_space.get_random_parameter_scalar(param)
+        else:
+            value = param_vector[param]
+
+        new_vector[param] = value
+
+    return new_vector
+
+
+
+
+
+
+	# 		nuovo valore per componenti differenti
+	# 			uniformemente a random nel loro spazio
 
 
 

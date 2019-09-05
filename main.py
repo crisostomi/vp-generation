@@ -1,5 +1,4 @@
 from model import Model
-from random import *
 import getpass
 
 from parameter_space import ParameterSpace

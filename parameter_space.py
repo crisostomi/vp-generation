@@ -11,5 +11,11 @@ class ParameterSpace:
     def get_parameter_values(self, parameter_name):
         return self.map[parameter_name]
 
+    def get_parameters_number(self):
+        return len(self.map.keys())
+
+    def get_random_parameter_scalar(self, parameter_name):
+        return np.random.choice(self.map[parameter_name])
+
 
 
