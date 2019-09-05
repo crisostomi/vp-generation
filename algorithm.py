@@ -28,7 +28,6 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
 
     return admissibile_params
 
-
 def choose_next_parameter(parameter_space, admissibile_params, b=2):
     param_vector = np.random.choice(admissibile_params, 1)[0]
 
@@ -62,23 +61,12 @@ def choose_next_parameter(parameter_space, admissibile_params, b=2):
 
     return new_vector
 
-
-
-
-
-
-	# 		nuovo valore per componenti differenti
-	# 			uniformemente a random nel loro spazio
-
-
-
 def bootstrap(model, parameter_space):
     opts = model.model.simulate_options()
     opts["CVode_options"]["verbosity"] = 50
     while True:
         parameters = parameter_space.get_random_parameters()
         model.set_parameters(parameters)
-        print(model.model.get("parameters.species_70544_init"))
         try:
             model.simulate(options=opts, final_time=2000)
         except:
