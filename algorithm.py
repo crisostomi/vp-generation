@@ -1,34 +1,39 @@
 import math
-# S' = currentAdmissibleParams
+
+
+# S' = current_admissible_params
 # S = admissibleParams
 # cal(S) = system
-# Lambda cappuccio = parameterSpace
+# Lambda cappuccio = parameter_space
 
 
-def getVirtualPatients(model, parameterSpace, admParameter, epsilon, delta):
-    N = ( math.log(delta) ) / ( math.log(1-epsilon) )
-    currentAdmissibleParams = { admParameter }
+def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
+    N = (math.log(delta)) / (math.log(1 - epsilon))
+    current_admissible_params = {adm_parameter}
 
     while True:
-        admissibileParams = currentAdmissibleParams
-        for i in range(1,N):
-            nextParam = chooseNextParameter(parameterSpace, admissibileParams)
-            if nextParam not in admissibileParams:
-                simulationResult = simulator.simulate(model, nextParam)
+        admissibileParams = current_admissible_params
+        for i in range(1, N):
+            next_param = choose_next_parameter(parameter_space, admissibileParams)
+            if next_param not in admissibileParams:
+                simulationResult = model.simulate(next_param)
                 if adm(simulationResult):
-                    currentAdmissibleParams += nextParam
+                    current_admissible_params += next_param
                     break
 
-        if currentAdmissibleParams == admissibileParams:
+        if current_admissible_params == admissibileParams:
             break
 
     return admissibileParams
 
-def chooseNextParameter():
+
+def choose_next_parameter():
     pass
 
-def adm():
-    pass
+
+def adm(simulation_result):
+    return True
+
 
 def bootstrap():
     pass
