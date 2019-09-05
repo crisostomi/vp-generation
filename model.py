@@ -8,6 +8,7 @@ import numpy as np
 UNDEFINED_PARAMETER = np.zeros(1)
 MONITOR_PREFIX = "monitor."
 PARAMETER_PREFIX = "parameters."
+SIMULATION_PREFIX = "simulation_time"
 STOP_TIME = 20.0
 
 class Model:
@@ -22,7 +23,7 @@ class Model:
         self.res = None
         self.abundances = None
 
-    def is_admissible(self, tolerance=0.2):
+    def is_admissible(self, tolerance=0.3):
         # per ogni average di cui esiste l'abundance, devo controllare che sia nel range di tolleranza
         assert self.res is not None
         assert self.abundances is not None
@@ -31,12 +32,15 @@ class Model:
         for protein_name, abundance in self.abundances.items():
             for monitor_name in self.get_monitors_name():
                 if protein_name in monitor_name:
-                    monitor_value = self.res[monitor_name]
+                    monitor_value = self.res[monitor_name][-1]
                     min_range_value = abundance - tolerance * abundance
                     max_range_value = abundance + tolerance * abundance
                     if monitor_value < min_range_value or monitor_value > max_range_value:
                         admissible = False
                         break
+                    else:
+                        print(protein_name+" monitor :" + str(monitor_value) + " min: " + str(min_range_value) + " max: " + str(max_range_value))
+
 
         return admissible
 
@@ -47,8 +51,8 @@ class Model:
         self.simulate()
         return self.res
 
-    def simulate(self):
-        self.res = self.model.simulate(final_time=STOP_TIME)
+    def simulate(self, options, final_time):
+        self.res = self.model.simulate(final_time=STOP_TIME, options=options)
 
     def set_abundances(self, abundances):
         self.abundances = abundances
@@ -60,7 +64,7 @@ class Model:
         return [var for var in self.get_variables_name() if var.startswith(MONITOR_PREFIX)]
 
     def get_parameters_name(self):
-        return [var for var in self.get_variables_name() if var.startswith(PARAMETER_PREFIX)]
+        return [var for var in self.get_variables_name() if var.startswith(PARAMETER_PREFIX) and not var.endswith(SIMULATION_PREFIX)]
 
     def get_undefined_parameters_name(self):
         return [var for var in self.get_parameters_name() if self.parameter_is_undefined(var)]
@@ -71,6 +75,10 @@ class Model:
 
     def set_parameter(self, parameter_name, value):
         self.model.set(parameter_name, value)
+
+    def set_parameters(self, parameters):
+        for param, value in parameters.items():
+            self.set_parameter(param, value)
 
     def get_model_species(self):
         variables = self.get_variables_name()
