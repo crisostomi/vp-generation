@@ -1,4 +1,5 @@
 import math
+from copy import deepcopy
 
 
 # S' = current_admissible_params
@@ -12,28 +13,26 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
     current_admissible_params = {adm_parameter}
 
     while True:
-        admissibileParams = current_admissible_params
+        admissibile_params = deepcopy(current_admissible_params)
         for i in range(1, N):
-            next_param = choose_next_parameter(parameter_space, admissibileParams)
-            if next_param not in admissibileParams:
-                simulationResult = model.simulate(next_param)
-                if adm(simulationResult):
-                    current_admissible_params += next_param
+            next_param = choose_next_parameter(parameter_space, admissibile_params)
+            if next_param not in admissibile_params:
+                model.simulate(next_param)
+                if model.is_admissible():
+                    current_admissible_params.add(next_param)
                     break
 
-        if current_admissible_params == admissibileParams:
+        if current_admissible_params == admissibile_params:
             break
 
-    return admissibileParams
+    return admissibile_params
 
 
-def choose_next_parameter():
-    pass
+def choose_next_parameter(parameter_space, admissibile_params):
+    return None
 
-
-def adm(simulation_result):
-    return True
 
 
 def bootstrap():
+    # montecarlo per trovare admissibile
     pass
