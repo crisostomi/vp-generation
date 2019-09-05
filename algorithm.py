@@ -1,5 +1,4 @@
 import math
-import simulator
 # S' = currentAdmissibleParams
 # S = admissibleParams
 # cal(S) = system
