@@ -1,13 +1,13 @@
-import algorithm
 from model import Model
 from random import *
-import re
+import getpass
 
 epsilon = 10**3
 delta = 0.05
 
 def main():
-    model = Model("/home/scacio/Dropbox/Tesisti/software/test-cases/urea/out")
+    user = getpass.getuser()
+    model = Model("/home/"+user+"/Dropbox/Tesisti/software/test-cases/urea/out")
     for var in model.get_model_parameters_name():
         value = random()
         model.set_model_parameter(var, value)
