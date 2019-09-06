@@ -3,7 +3,7 @@ from enum import Enum
 import numpy as np
 import random
 
-EPSILON_ABOVE_ZERO = 10**(-30)
+EPSILON_ABOVE_ZERO = 10**(-25)
 
 class DiscretizationMethod(Enum):
     linear=0
@@ -37,7 +37,6 @@ class ParameterSpace:
             random_index = random.randrange(len(linspace))
             random_parameters[param] = linspace[random_index]
         return random_parameters
-
 
     def get_parameters_number(self):
         return len(self.map.keys())

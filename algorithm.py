@@ -3,7 +3,6 @@ import numpy as np
 import traceback
 from copy import deepcopy
 
-
 # S' = current_admissible_params
 # S = admissibleParams
 # cal(S) = system
@@ -11,17 +10,19 @@ from copy import deepcopy
 
 
 def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
-    N = (math.log(delta)) / (math.log(1 - epsilon))
-    current_admissible_params = {adm_parameter}
+    N = int((math.log(delta)) / (math.log(1 - epsilon)))
+    print(N)
+    current_admissible_params = [adm_parameter]
 
     while True:
         admissibile_params = deepcopy(current_admissible_params)
         for i in range(1, N):
             next_param = choose_next_parameter(parameter_space, admissibile_params)
             if next_param not in admissibile_params:
-                model.simulate(next_param, final_time=200)
+                model.set_parameters(next_param)
+                model.simulate(final_time=200, verbose=True)
                 if model.is_admissible():
-                    current_admissible_params.add(next_param)
+                    current_admissible_params.append(next_param)
                     break
 
         if current_admissible_params == admissibile_params:
@@ -62,15 +63,12 @@ def choose_next_parameter(parameter_space, admissibile_params, b=2):
 
     return new_vector
 
-
 def bootstrap(model, parameter_space):
-    opts = model.model.simulate_options()
-    opts["CVode_options"]["verbosity"] = 50
     while True:
         parameters = parameter_space.get_random_parameters()
         model.set_parameters(parameters)
         try:
-            model.simulate(options=opts, final_time=200)
+            model.simulate(final_time=2000, verbose=False)
         except:
             print("bad setup parameters")
             traceback.print_exc()
@@ -79,4 +77,4 @@ def bootstrap(model, parameter_space):
         if model.is_admissible():
             return parameters
         model.model.reset()
-        model.set_parameter("parameters.simulation_time", 200)
+        model.set_parameter("parameters.simulation_time", 2000)

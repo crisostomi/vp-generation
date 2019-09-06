@@ -40,8 +40,8 @@ class System:
                     monitor_value = self.res[monitor_name][-1]
                     min_range_value = abundance - tolerance * abundance
                     max_range_value = abundance + tolerance * abundance
-                    # print(protein_name + " monitor :" + str(monitor_value) + " min: " + str(
-                    #     min_range_value) + " max: " + str(max_range_value))
+                    # print(protein_name + " monitor :" + str(monitor_value) + " min: " + str(min_range_value) + " max: " + str(max_range_value))
+
                     if monitor_value < min_range_value or monitor_value > max_range_value:
                         admissible = False
                     else:
@@ -54,8 +54,14 @@ class System:
             print(admProteins)
         return admissible
 
-    def simulate(self, options, final_time):
-        self.res = self.model.simulate(final_time=final_time, options=options)
+    def simulate(self, final_time, verbose=True):
+        if not verbose:
+            opts = self.model.simulate_options()
+            opts["CVode_options"]["verbosity"] = 50
+            self.res = self.model.simulate(final_time=final_time, options = opts)
+        else:
+            self.res = self.model.simulate(final_time=final_time)
+
 
     def set_abundances(self, abundances):
         self.abundances = abundances
@@ -94,10 +100,9 @@ class System:
 
         return result
 
-    # def simulate(self, parameters_values_map):
-    #     for parameter, value in parameters_values_map.items():
-    #         self.set_parameter(parameter, value)
-    #
-    #     self.simulate()
-    #     return self.res
-
+    def set_parameters_from_file(self, file):
+        f = open(file)
+        content = f.readline()
+        dict = eval(content)
+        self.set_parameters(dict)
+        f.close()
