@@ -12,7 +12,6 @@ SIMULATION_SUFFIX = "simulation_time"
 STOP_TIME = 20.0
 
 class System:
-    goodParams = dict()
     max = 0
 
     def __init__(self, path):
@@ -33,23 +32,26 @@ class System:
 
         admissible = True
         totProteins = len(self.abundances.items())
-        admProteins = 0
+        admProteinsCount = 0
+        admProteins = []
         for protein_name, abundance in self.abundances.items():
             for monitor_name in self.get_monitors_name():
                 if protein_name in monitor_name:
                     monitor_value = self.res[monitor_name][-1]
                     min_range_value = abundance - tolerance * abundance
                     max_range_value = abundance + tolerance * abundance
+                    # print(protein_name + " monitor :" + str(monitor_value) + " min: " + str(
+                    #     min_range_value) + " max: " + str(max_range_value))
                     if monitor_value < min_range_value or monitor_value > max_range_value:
                         admissible = False
                     else:
-                        # print(protein_name + " monitor :" + str(monitor_value) + " min: " + str(
-                        #     min_range_value) + " max: " + str(max_range_value))
-                        self.goodParams[protein_name] = self.model.get('parameters.'+protein_name.replace("_average","_init"))
-                        admProteins += 1
-        if admProteins > self.max:
-            self.max = admProteins
+                        admProteinsCount += 1
+                        admProteins.append(protein_name)
+                        
+        if admProteinsCount > self.max:
+            self.max = admProteinsCount
             print(str(self.max)+"/"+str(totProteins))
+            print(admProteins)
         return admissible
 
     def simulate(self, options, final_time):

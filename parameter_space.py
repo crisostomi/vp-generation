@@ -2,12 +2,12 @@ import numpy as np
 import random
 
 class ParameterSpace:
-    def __init__(self, parameters, discretization_step=3):
+    def __init__(self, parameters, discretization_step):
         self.map = dict()
 
         for param, bounds_tuple in parameters.items():
             param_name = "parameters."+param
-            self.map[param_name] = np.geomspace(bounds_tuple[0]+10**(-18), bounds_tuple[1], num=discretization_step)
+            self.map[param_name] = np.geomspace(bounds_tuple[0]+10**(-30), bounds_tuple[1], num=discretization_step)
 
     def get_parameter_values(self, parameter_name):
         return self.map[parameter_name]
