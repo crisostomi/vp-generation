@@ -1,13 +1,32 @@
+from enum import Enum
+
 import numpy as np
 import random
 
+EPSILON_ABOVE_ZERO = 10**(-30)
+
+class DiscretizationMethod(Enum):
+    linear=0
+    geometric=1
+
 class ParameterSpace:
-    def __init__(self, parameters, discretization_step=3):
+    def __init__(self, parameters, discretization_method=DiscretizationMethod.geometric, discretization_step=3, epsilon_above_zero=EPSILON_ABOVE_ZERO):
         self.map = dict()
 
         for param, bounds_tuple in parameters.items():
             param_name = "parameters."+param
-            self.map[param_name] = np.geomspace(bounds_tuple[0]+10**(-18), bounds_tuple[1], num=discretization_step)
+            if discretization_method == DiscretizationMethod.geometric:
+                self.map[param_name] = np.geomspace(
+                    max(bounds_tuple[0], epsilon_above_zero),
+                    bounds_tuple[1],
+                    num=discretization_step
+                )
+            else:
+                self.map[param_name] = np.linspace(
+                    max(bounds_tuple[0], epsilon_above_zero),
+                    bounds_tuple[1],
+                    num=discretization_step
+                )
 
     def get_parameter_values(self, parameter_name):
         return self.map[parameter_name]
