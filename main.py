@@ -23,7 +23,7 @@ def main():
     param_bounds = parse_parameters_bounds_xml(XML_PATH)
     parameter_space = ParameterSpace(param_bounds, discretization_step=30)
     abundances = parse_abundance_xml(ABUNDANCES_PATH)
-    system.set_parameter(SIMULATION_TIME, 2000)
+    system.set_parameter(SIMULATION_TIME, 200)
     system.set_abundances(abundances)
     print algorithm.bootstrap(system, parameter_space)
 

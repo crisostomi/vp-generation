@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import traceback
 from copy import deepcopy
 
 
@@ -18,7 +19,7 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
         for i in range(1, N):
             next_param = choose_next_parameter(parameter_space, admissibile_params)
             if next_param not in admissibile_params:
-                model.simulate(next_param, final_time=2000)
+                model.simulate(next_param, final_time=200)
                 if model.is_admissible():
                     current_admissible_params.add(next_param)
                     break
@@ -69,11 +70,13 @@ def bootstrap(model, parameter_space):
         parameters = parameter_space.get_random_parameters()
         model.set_parameters(parameters)
         try:
-            model.simulate(options=opts, final_time=2000)
+            model.simulate(options=opts, final_time=200)
         except:
             print("bad setup parameters")
+            traceback.print_exc()
+            exit(0)
             continue
         if model.is_admissible():
             return parameters
         model.model.reset()
-        model.set_parameter("parameters.simulation_time", 2000)
+        model.set_parameter("parameters.simulation_time", 200)
