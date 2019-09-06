@@ -61,6 +61,7 @@ def choose_next_parameter(parameter_space, admissibile_params, b=2):
 
     return new_vector
 
+
 def bootstrap(model, parameter_space):
     opts = model.model.simulate_options()
     opts["CVode_options"]["verbosity"] = 50
@@ -72,7 +73,7 @@ def bootstrap(model, parameter_space):
         except:
             print("bad setup parameters")
             continue
-        if (model.is_admissible()):
+        if model.is_admissible():
             return parameters
         model.model.reset()
-        model.set_parameter("parameters.simulation_time",2000)
+        model.set_parameter("parameters.simulation_time", 2000)

@@ -7,7 +7,7 @@ class ParameterSpace:
 
         for param, bounds_tuple in parameters.items():
             param_name = "parameters."+param
-            self.map[param_name] = np.geomspace(bounds_tuple[0]+10**(-20), bounds_tuple[1], num=discretization_step)
+            self.map[param_name] = np.geomspace(bounds_tuple[0]+10**(-18), bounds_tuple[1], num=discretization_step)
 
     def get_parameter_values(self, parameter_name):
         return self.map[parameter_name]
