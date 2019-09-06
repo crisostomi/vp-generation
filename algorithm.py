@@ -8,6 +8,9 @@ from copy import deepcopy
 # cal(S) = system
 # Lambda cappuccio = parameter_space
 
+STOP_TIME_PARAMETER = "parameters.simulation_time"
+STOP_TIME = 20
+
 
 def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
     N = int((math.log(delta)) / (math.log(1 - epsilon)))
@@ -77,4 +80,4 @@ def bootstrap(model, parameter_space):
         if model.is_admissible():
             return parameters
         model.model.reset()
-        model.set_parameter("parameters.simulation_time", 2000)
+        model.set_parameter(STOP_TIME_PARAMETER, STOP_TIME)

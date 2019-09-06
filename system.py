@@ -9,7 +9,6 @@ UNDEFINED_PARAMETER = np.zeros(1)
 MONITOR_PREFIX = "monitor."
 PARAMETER_PREFIX = "parameters."
 SIMULATION_SUFFIX = "simulation_time"
-STOP_TIME = 20.0
 
 class System:
     max = 0
