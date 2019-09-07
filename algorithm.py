@@ -1,9 +1,7 @@
 import math
 import random
-
 import numpy as np
 import traceback
-from copy import deepcopy
 
 # S' = current_admissible_params
 # S = admissibleParams
@@ -23,7 +21,7 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta, ve
         adm_parameter = parameter_space.get_array_from_map(adm_parameter)
 
     if verbose:
-        print "Admissible parameter vector: " + adm_parameter
+        print "Admissible parameter vector: " + str(adm_parameter)
 
     current_admissible_params = {adm_parameter}
     admissible_params = set()

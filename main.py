@@ -31,7 +31,7 @@ def main():
     system.set_abundances(abundances)
     # print algorithm.bootstrap(system, parameter_space)
     adm_parameters = utils.utils.get_parameter_from_file(ADM_PARAM_FILE)
-    print algorithm.getVirtualPatients(system, parameter_space, adm_parameters, epsilon, delta, verbose=False)
+    print algorithm.getVirtualPatients(system, parameter_space, adm_parameters, epsilon, delta, verbose=True)
 
 if __name__ == '__main__':
     main()
