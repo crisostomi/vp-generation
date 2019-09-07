@@ -1,4 +1,6 @@
 import math
+import random
+
 import numpy as np
 import traceback
 from copy import deepcopy
@@ -12,72 +14,89 @@ STOP_TIME_PARAMETER = "parameters.simulation_time"
 STOP_TIME = 20
 
 
-def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta):
+def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta, verbose=True):
     N = int((math.log(delta)) / (math.log(1 - epsilon)))
-    print(N)
-    current_admissible_params = [adm_parameter]
+    if verbose:
+        print "N = " + str(N)
 
+    if type(adm_parameter) == dict:
+        adm_parameter = parameter_space.get_array_from_map(adm_parameter)
+
+    if verbose:
+        print "Admissible parameter vector: " + adm_parameter
+
+    current_admissible_params = {adm_parameter}
+    admissible_params = set()
     while True:
-        admissibile_params = deepcopy(current_admissible_params)
+        admissible_params.update(current_admissible_params)
         for i in range(1, N):
-            next_param = choose_next_parameter(parameter_space, admissibile_params)
-            if next_param not in admissibile_params:
-                model.set_parameters(next_param)
-                model.simulate(final_time=200, verbose=True)
+            model.model.reset()
+            next_param = choose_next_parameter(parameter_space, admissible_params, verbose=verbose)
+            if verbose:
+                print "New parameter: " + str(next_param)
+            if next_param not in admissible_params:
+                param_map = parameter_space.get_map_from_array(next_param)
+                model.set_parameters(param_map)
+                model.simulate(final_time=STOP_TIME, verbose=False)
                 if model.is_admissible():
-                    current_admissible_params.append(next_param)
+                    if verbose:
+                        print "Parameter is admissible, number of current admissible params: " \
+                              + str(len(current_admissible_params))
+                    current_admissible_params.add(next_param)
                     break
 
-        if current_admissible_params == admissibile_params:
+        if current_admissible_params == admissible_params:
             break
 
-    return admissibile_params
+    return admissible_params
 
-def choose_next_parameter(parameter_space, admissibile_params, b=2):
-    param_vector = np.random.choice(admissibile_params, 1)[0]
+
+def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=True):
+
+    param_vector = random.choice(list(admissible_params))
+    if verbose:
+        print "Random admissible parameter: " + str(param_vector)
 
     n = len(param_vector)
     numbers = np.arange(1, n+1)
-    parameters_names = sorted(list(parameter_space.map.keys()))
-    probabilities = {h: h**(-b) for h in numbers}
-
-    np.random.shuffle(numbers)
+    probabilities = {h: float(h)**(-b) for h in numbers}
 
     number_of_components_to_be_changed = 0
     while number_of_components_to_be_changed == 0:
+        np.random.shuffle(numbers)
         for i in range(0, n):
             h = numbers[i]
             prob_h = probabilities[h]
             if np.random.random() <= prob_h:
                 number_of_components_to_be_changed = h
 
-        np.random.shuffle(numbers)
+    components_to_be_changed = np.random.choice(np.arange(0, n), number_of_components_to_be_changed)
+    if verbose:
+        print "Components changed: " + str(components_to_be_changed)
 
-    compontents_to_be_changed = np.random.choice(np.arange(0, n), number_of_components_to_be_changed)
-    new_vector = dict()
+    new_vector = list()
     for i in range(n):
-        param = parameters_names[i]
-        if i in compontents_to_be_changed:
-            value = parameter_space.get_random_parameter_scalar(param)
+        if i in components_to_be_changed:
+            value = parameter_space.get_random_parameter_scalar(i)
         else:
-            value = param_vector[param]
+            value = param_vector[i]
 
-        new_vector[param] = value
+        new_vector.append(value)
 
-    return new_vector
+    return tuple(new_vector)
+
 
 def bootstrap(model, parameter_space):
     while True:
-        parameters = parameter_space.get_random_parameters()
+        parameters = parameter_space.get_random_parameter_as_map()
         model.set_parameters(parameters)
         try:
-            model.simulate(final_time=2000, verbose=False)
+            model.simulate(final_time=STOP_TIME, verbose=False)
         except:
             print("bad setup parameters")
             traceback.print_exc()
             exit(0)
-            continue
+
         if model.is_admissible():
             return parameters
         model.model.reset()
-        model.set_parameter(STOP_TIME_PARAMETER, STOP_TIME)

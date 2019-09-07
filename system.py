@@ -10,6 +10,7 @@ MONITOR_PREFIX = "monitor."
 PARAMETER_PREFIX = "parameters."
 SIMULATION_SUFFIX = "simulation_time"
 
+
 class System:
     max = 0
 
@@ -30,9 +31,9 @@ class System:
         assert self.abundances is not None
 
         admissible = True
-        totProteins = len(self.abundances.items())
-        admProteinsCount = 0
-        admProteins = []
+        tot_proteins = len(self.abundances.items())
+        adm_proteins_count = 0
+        adm_proteins = []
         for protein_name, abundance in self.abundances.items():
             for monitor_name in self.get_monitors_name():
                 if protein_name in monitor_name:
@@ -44,23 +45,23 @@ class System:
                     if monitor_value < min_range_value or monitor_value > max_range_value:
                         admissible = False
                     else:
-                        admProteinsCount += 1
-                        admProteins.append(protein_name)
+                        adm_proteins_count += 1
+                        adm_proteins.append(protein_name)
                         
-        if admProteinsCount > self.max:
-            self.max = admProteinsCount
-            print(str(self.max)+"/"+str(totProteins))
-            print(admProteins)
+        if adm_proteins_count > self.max:
+            self.max = adm_proteins_count
+            print(str(self.max)+"/"+str(tot_proteins))
+            print(adm_proteins)
         return admissible
 
     def simulate(self, final_time, verbose=True):
+        self.set_parameter(PARAMETER_PREFIX + SIMULATION_SUFFIX, final_time)
         if not verbose:
             opts = self.model.simulate_options()
             opts["CVode_options"]["verbosity"] = 50
-            self.res = self.model.simulate(final_time=final_time, options = opts)
+            self.res = self.model.simulate(final_time=final_time, options=opts)
         else:
             self.res = self.model.simulate(final_time=final_time)
-
 
     def set_abundances(self, abundances):
         self.abundances = abundances
