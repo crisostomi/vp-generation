@@ -1,5 +1,7 @@
 import math
 import random
+import time
+
 import numpy as np
 import traceback
 
@@ -25,6 +27,7 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta, ve
 
     current_admissible_params = {adm_parameter}
     admissible_params = set()
+    start_time = time.time()
     while True:
         admissible_params.update(current_admissible_params)
         for i in range(1, N):
@@ -40,6 +43,12 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta, ve
                     if verbose:
                         print "Parameter is admissible, number of current admissible params: " \
                               + str(len(current_admissible_params))
+
+                    if len(current_admissible_params) % 100 == 0:
+                        elapsed_time = time.time() - start_time
+                        print "[%.3f s]" % elapsed_time + \
+                              " Number of current admissible params: " + str(len(current_admissible_params))
+
                     current_admissible_params.add(next_param)
                     break
 

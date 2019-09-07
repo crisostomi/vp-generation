@@ -1,5 +1,4 @@
 import os
-
 from pyfmi.fmi import load_fmu
 from pymodelica import compile_fmu
 import re
