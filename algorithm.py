@@ -93,7 +93,7 @@ def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=True)
     return tuple(new_vector)
 
 
-def bootstrap(model, parameter_space):
+def bootstrap(model, parameter_space, stop_time):
     while True:
         parameters = parameter_space.get_random_parameter_as_map()
         model.set_parameters(parameters)
