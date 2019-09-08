@@ -21,18 +21,19 @@ STOP_TIME = 20
 
 SIMULATION_TIME = "parameters.simulation_time"
 ADM_PARAM_FILE = MODEL_FOLDER+"/admissible_param.txt"
-
+PARAM_FILE = MODEL_FOLDER + "/virtual_patients.txt"
 
 def main():
     system = System(MODEL_FOLDER)
     param_bounds = parse_parameters_bounds_xml(XML_PATH)
-    parameter_space = ParameterSpace(param_bounds, discretization_step=20, epsilon_above_zero=10**(-25))
+    parameter_space = ParameterSpace(param_bounds, discretization_step=3, epsilon_above_zero=10**(-25))
     abundances = parse_abundance_xml(ABUNDANCES_PATH)
     system.set_parameter(STOP_TIME_PARAMETER, STOP_TIME)
     system.set_abundances(abundances)
     # print algorithm.bootstrap(system, parameter_space, STOP_TIME)
     adm_parameters = utils.utils.get_parameter_from_file(ADM_PARAM_FILE)
-    print algorithm.getVirtualPatients(system, parameter_space, adm_parameters, epsilon, delta, verbose=False)
+    vps = algorithm.get_virtual_patients(system, parameter_space, adm_parameters, epsilon, delta, verbose=False)
+    utils.utils.save_parameters_to_file(PARAM_FILE, parameter_space, vps)
 
 
 if __name__ == '__main__':

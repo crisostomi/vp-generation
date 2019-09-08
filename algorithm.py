@@ -14,7 +14,7 @@ STOP_TIME_PARAMETER = "parameters.simulation_time"
 STOP_TIME = 20
 
 
-def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta, verbose=True):
+def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, limit=0, verbose=True):
     N = int((math.log(delta)) / (math.log(1 - epsilon)))
     if verbose:
         print "N = " + str(N)
@@ -50,6 +50,8 @@ def getVirtualPatients(model, parameter_space, adm_parameter, epsilon, delta, ve
                               " Number of current admissible params: " + str(len(current_admissible_params))
 
                     current_admissible_params.add(next_param)
+                    if limit != 0 and len(current_admissible_params) >= limit:
+                        return current_admissible_params
                     break
 
         if current_admissible_params == admissible_params:
