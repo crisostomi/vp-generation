@@ -11,40 +11,47 @@ import traceback
 # Lambda cappuccio = parameter_space
 
 STOP_TIME_PARAMETER = "parameters.simulation_time"
-STOP_TIME = 20
+STOP_TIME = 200
 
 
-def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, limit=0, verbose=True):
+def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, limit=0, verbose=0):
     N = int((math.log(delta)) / (math.log(1 - epsilon)))
-    if verbose:
+    if verbose > 0:
         print "N = " + str(N)
 
     if type(adm_parameter) == dict:
         adm_parameter = parameter_space.get_array_from_map(adm_parameter)
 
-    if verbose:
+    if verbose > 1:
         print "Admissible parameter vector: " + str(adm_parameter)
 
     current_admissible_params = {adm_parameter}
     admissible_params = set()
     start_time = time.time()
+
+    max_N = 0
+
     while True:
         admissible_params.update(current_admissible_params)
         for i in range(1, N):
+            if i > max_N:
+                max_N = i
+                if verbose > 0:
+                    print "Maximum number of failures: " + str(max_N)
             model.model.reset()
             next_param = choose_next_parameter(parameter_space, admissible_params, verbose=verbose)
-            if verbose:
+            if verbose > 1:
                 print "New parameter: " + str(next_param)
             if next_param not in admissible_params:
                 param_map = parameter_space.get_map_from_array(next_param)
                 model.set_parameters(param_map)
                 model.simulate(final_time=STOP_TIME, verbose=False)
                 if model.is_admissible():
-                    if verbose:
+                    if verbose > 1:
                         print "Parameter is admissible, number of current admissible params: " \
                               + str(len(current_admissible_params))
 
-                    if len(current_admissible_params) % 100 == 0:
+                    if verbose > 0 and len(current_admissible_params) % 100 == 0:
                         elapsed_time = time.time() - start_time
                         print "[%.3f s]" % elapsed_time + \
                               " Number of current admissible params: " + str(len(current_admissible_params))
@@ -60,10 +67,10 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     return admissible_params
 
 
-def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=True):
+def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=2):
 
     param_vector = random.choice(list(admissible_params))
-    if verbose:
+    if verbose > 1:
         print "Random admissible parameter: " + str(param_vector)
 
     n = len(param_vector)
@@ -80,7 +87,7 @@ def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=True)
                 number_of_components_to_be_changed = h
 
     components_to_be_changed = np.random.choice(np.arange(0, n), number_of_components_to_be_changed)
-    if verbose:
+    if verbose > 1:
         print "Components changed: " + str(components_to_be_changed)
 
     new_vector = list()
