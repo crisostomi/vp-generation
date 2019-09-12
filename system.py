@@ -22,35 +22,33 @@ class System:
         fmu = compile_fmu("System", modelica_files)
         self.model = load_fmu(fmu)
         self.res = None
-        self.abundances = None
+        self.constraints = None
 
-    def is_admissible(self, tolerance=0.2):
-        # per ogni average di cui esiste l'abundance, devo controllare che sia nel range di tolleranza
+    def is_admissible(self):
+        # per ogni monitor di errore, devo controllare se sta nei bounds specificati nei constraints
         assert self.res is not None
-        assert self.abundances is not None
+        assert self.constraints is not None
 
-        admissible = True
-        tot_proteins = len(self.abundances.items())
         adm_proteins_count = 0
         adm_proteins = []
-        for protein_name, abundance in self.abundances.items():
-            for monitor_name in self.get_monitors_name():
-                if protein_name in monitor_name:
-                    monitor_value = self.res[monitor_name][-1]
-                    min_range_value = abundance - tolerance * abundance
-                    max_range_value = abundance + tolerance * abundance
-                    # print(protein_name + " monitor :" + str(monitor_value) + " min: " + str(min_range_value) + " max: " + str(max_range_value))
+        tot_proteins = len(self.constraints.items())
 
-                    if monitor_value < min_range_value or monitor_value > max_range_value:
-                        admissible = False
-                    else:
-                        adm_proteins_count += 1
-                        adm_proteins.append(protein_name)
-                        
+        admissible = True
+        for monitor, bounds in self.constraints.items():
+            lb, ub = bounds
+            monitor_name = MONITOR_PREFIX + monitor
+            monitor_value = self.res[monitor_name][-1]
+            if monitor_value < lb or monitor_value > ub:
+                admissible = False
+            else:
+                adm_proteins_count += 1
+                adm_proteins.append(monitor_name)
+
         if adm_proteins_count > self.max:
             self.max = adm_proteins_count
             print(str(self.max)+"/"+str(tot_proteins))
             print(adm_proteins)
+
         return admissible
 
     def simulate(self, final_time, verbose=True):
@@ -62,8 +60,8 @@ class System:
         else:
             self.res = self.model.simulate(final_time=final_time)
 
-    def set_abundances(self, abundances):
-        self.abundances = abundances
+    def set_constraints(self, constraints):
+        self.constraints = constraints
 
     def get_variables_name(self):
         return [str(var) for var in self.model.get_model_variables()]

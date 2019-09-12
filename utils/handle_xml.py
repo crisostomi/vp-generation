@@ -19,13 +19,14 @@ def parse_parameters_bounds_xml(xml_path):
     return parameters_bounds
 
 
-def parse_abundance_xml(xml_path):
+def parse_constraints(xml_path):
     root = parse_xml(xml_path)
-    abundances = dict()
-    for protein in root.findall('protein'):
-        abundance = float(protein.get('abundance'))
-        monitor_variable_name = protein.get('name')
-        abundances[monitor_variable_name] = abundance
+    constraints = dict()
+    for constraint in root.findall('constraint'):
+        monitor_variable_name = constraint.get('name')
+        lower_bound = float(constraint.get('lowerBound'))
+        upper_bound = float(constraint.get('upperBound'))
+        constraints[monitor_variable_name] = (lower_bound, upper_bound)
 
-    return abundances
+    return constraints
 
