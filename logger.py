@@ -1,12 +1,12 @@
 import math
+import os
 
 INDENT = "\t"
 
 
 class Logger:
-
     def __init__(self, file_name):
-        self.file_name = file_name
+        self.file_name = self.find_file_name(file_name)
         self.buffer = ""
 
     def write_to_file(self, content, append):
@@ -39,7 +39,6 @@ class Logger:
         content += INDENT+str(virtual_patient)+"\n"
         self.buffer += content
 
-
     def flush(self):
         self.write_to_file(self.buffer, True)
         self.buffer = ""
@@ -50,3 +49,16 @@ class Logger:
         content += "virtual patients found: {}\n".format(vp_count)
         self.buffer += content
         self.flush()
+
+    def find_file_name(self, file_name):
+        if os.path.exists(file_name):
+            i = 0
+            while True:
+                new_file_name = file_name + "_%d" % i
+                if os.path.exists(new_file_name):
+                    i += 1
+                else:
+                    return new_file_name
+        else:
+            return file_name
+
