@@ -85,7 +85,6 @@ def choose_next_parameter(parameter_space, admissible_params, numbers, probabili
         for i in range(0, n):
             h = numbers[i]
             prob_h = probabilities[h]
-            print h, prob_h
             if np.random.random() <= prob_h:
                 number_of_components_to_be_changed = h
 
