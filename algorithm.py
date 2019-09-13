@@ -1,14 +1,7 @@
 import math
-import random
 import time
-
 import numpy as np
-import traceback
 
-# S' = current_admissible_params
-# S = admissibleParams
-# cal(S) = system
-# Lambda cappuccio = parameter_space
 
 STOP_TIME_PARAMETER = "parameters.simulation_time"
 STOP_TIME = 1e5
@@ -25,8 +18,8 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     if verbose > 1:
         print "Admissible parameter vector: " + str(adm_parameter)
 
-    current_admissible_params = {adm_parameter}
-    admissible_params = set()
+    admissible_params = {adm_parameter}
+    admissible_params_array = list(admissible_params)
     start_time = time.time()
 
     max_N = 0
@@ -36,55 +29,62 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     probabilities = {h: a*float(h)**(-b) for h in numbers}
 
     while True:
-        timer1 = time.time()
-        admissible_params.update(current_admissible_params)
-        print "set update: %f" % (time.time() - timer1)
+        new_parameter_found = False
         for i in range(1, N):
             if i > max_N:
                 max_N = i
                 if verbose > 0:
                     print "Maximum number of failures: " + str(max_N)
             model.model.reset()
-            timer2 = time.time()
-            next_param = choose_next_parameter(parameter_space, admissible_params, numbers, probabilities, verbose=verbose)
-            print "choose parameter: %f" % (time.time() - timer2)
+            timer_1 = time.time()
+            new_param = choose_next_parameter(parameter_space, admissible_params_array, numbers, probabilities, verbose=verbose)
+            elapsed_time_1 = (time.time() - timer_1)
             if verbose > 1:
-                print "New parameter: " + str(next_param)
-            timer3 = time.time()
-            if next_param not in admissible_params:
-                print "containment check: %f" % (time.time() - timer3)
-                param_map = parameter_space.get_map_from_array(next_param)
+                print "New parameter: " + str(new_param)
+            timer_2 = time.time()
+            if new_param not in admissible_params:
+                elapsed_time_2 = time.time() - timer_2
+                param_map = parameter_space.get_map_from_array(new_param)
                 model.set_parameters(param_map)
                 try:
-                    timer4 = time.time()
+                    timer_3 = time.time()
                     model.simulate(final_time=STOP_TIME, verbose=False)
-                    print "simulation time: %f" % (time.time() - timer4)
+                    elapsed_time_3 = time.time() - timer_3
                 except:
                     continue
                 if model.is_admissible():
                     if verbose > 1:
                         print "Parameter is admissible, number of current admissible params: " \
-                              + str(len(current_admissible_params))
+                              + str(len(admissible_params))
 
-                    if verbose > 0 and len(current_admissible_params) % 100 == 0:
+                    if verbose > 0 and len(admissible_params) % 100 == 0:
                         elapsed_time = time.time() - start_time
-                        print "[%.3f s]" % elapsed_time + \
-                              " Number of current admissible params: " + str(len(current_admissible_params))
+                        print "\n[%.3f s]" % elapsed_time + \
+                              " Number of current admissible params: " + str(len(admissible_params))
+                        print "Random sampling time: %f" % elapsed_time_1
+                        print "Containment check time: %f" % elapsed_time_2
+                        print "Simulation time: %f" % elapsed_time_3
 
-                    current_admissible_params.add(next_param)
-                    if limit != 0 and len(current_admissible_params) >= limit:
-                        return current_admissible_params
+                    admissible_params.add(new_param)
+                    admissible_params_array.append(new_param)
+                    new_parameter_found = True
+                    if limit != 0 and len(admissible_params) >= limit:
+                        return admissible_params
+
                     break
 
-        if current_admissible_params == admissible_params:
+        if not new_parameter_found:
             break
 
     return admissible_params
 
 
-def choose_next_parameter(parameter_space, admissible_params, numbers, probabilities, verbose=2):
+def choose_next_parameter(parameter_space, admissible_params_array, numbers, probabilities, verbose=2):
 
-    param_vector = random.choice(list(admissible_params))
+    L = len(admissible_params_array)
+    i = np.random.randint(0, L)
+    param_vector = admissible_params_array[i]
+
     if verbose > 1:
         print "Random admissible parameter: " + str(param_vector)
 
