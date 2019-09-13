@@ -11,12 +11,13 @@ class DiscretizationMethod(Enum):
 
 
 class ParameterSpace:
-    def __init__(self, parameters, discretization_method=DiscretizationMethod.geometric, discretization_step=3, epsilon_above_zero=EPSILON_ABOVE_ZERO):
+    def __init__(self, parameters, system, discretization_method=DiscretizationMethod.geometric, prot_discretization_step=10, non_prot_discretization_step=3, epsilon_above_zero=EPSILON_ABOVE_ZERO):
         self.space = dict()
         self.params = list()
 
         for param, bounds_tuple in parameters.items():
             param_name = "parameters."+param
+            discretization_step = prot_discretization_step if self.is_protein(param_name, system) else non_prot_discretization_step
             self.params.append(param_name)
             if discretization_method == DiscretizationMethod.geometric:
                 self.space[param_name] = np.geomspace(
@@ -31,6 +32,10 @@ class ParameterSpace:
                     num=discretization_step
                 )
         self.params = tuple(self.params)
+
+    def is_protein(self, param, system ):
+        return param in system.get_proteins()
+
 
     def get_space(self, parameter_name):
         return self.space[parameter_name]

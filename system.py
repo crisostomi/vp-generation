@@ -38,6 +38,7 @@ class System:
             lb, ub = bounds
             monitor_name = MONITOR_PREFIX + monitor
             monitor_value = self.res[monitor_name][-1]
+            # print monitor_name + str(monitor_value)
             if monitor_value < lb or monitor_value > ub:
                 admissible = False
             else:
@@ -62,6 +63,13 @@ class System:
 
     def set_constraints(self, constraints):
         self.constraints = constraints
+
+    def get_proteins(self):
+        proteins = []
+        for constraint in self.constraints.keys():
+            initialParameter = "parameters." + constraint.replace("error", "init")
+            proteins.append(initialParameter)
+        return proteins
 
     def get_variables_name(self):
         return [str(var) for var in self.model.get_model_variables()]

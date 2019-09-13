@@ -11,7 +11,7 @@ import traceback
 # Lambda cappuccio = parameter_space
 
 STOP_TIME_PARAMETER = "parameters.simulation_time"
-STOP_TIME = 200
+STOP_TIME = 1e5
 
 
 def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, limit=0, verbose=0):
@@ -32,20 +32,31 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     max_N = 0
 
     while True:
+        timer1 = time.time()
         admissible_params.update(current_admissible_params)
+        print "set update: %f" % (time.time() - timer1)
         for i in range(1, N):
             if i > max_N:
                 max_N = i
                 if verbose > 0:
                     print "Maximum number of failures: " + str(max_N)
             model.model.reset()
-            next_param = choose_next_parameter(parameter_space, admissible_params, verbose=verbose)
+            timer2 = time.time()
+            next_param = choose_next_parameter(parameter_space, admissible_params, model, verbose=verbose)
+            print "choose parameter: %f" % (time.time() - timer2)
             if verbose > 1:
                 print "New parameter: " + str(next_param)
+            timer3 = time.time()
             if next_param not in admissible_params:
+                print "containment check: %f" % (time.time() - timer3)
                 param_map = parameter_space.get_map_from_array(next_param)
                 model.set_parameters(param_map)
-                model.simulate(final_time=STOP_TIME, verbose=False)
+                try:
+                    timer4 = time.time()
+                    model.simulate(final_time=STOP_TIME, verbose=False)
+                    print "simulation time: %f" % (time.time() - timer4)
+                except:
+                    continue
                 if model.is_admissible():
                     if verbose > 1:
                         print "Parameter is admissible, number of current admissible params: " \
@@ -67,7 +78,7 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     return admissible_params
 
 
-def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=2):
+def choose_next_parameter(parameter_space, admissible_params, model, b=2, verbose=2):
 
     param_vector = random.choice(list(admissible_params))
     if verbose > 1:
@@ -101,17 +112,19 @@ def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=2):
 
     return tuple(new_vector)
 
+def chooseRandomComponents(parameters, number_of_components_to_be_changed):
+    pass
+
+
 
 def bootstrap(model, parameter_space, stop_time):
     while True:
         parameters = parameter_space.get_random_parameter_as_map()
         model.set_parameters(parameters)
         try:
-            model.simulate(final_time=STOP_TIME, verbose=False)
+            model.simulate(final_time=stop_time, verbose=False)
         except:
             print("bad setup parameters")
-            traceback.print_exc()
-            exit(0)
 
         if model.is_admissible():
             return parameters
