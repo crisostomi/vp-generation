@@ -14,7 +14,7 @@ STOP_TIME_PARAMETER = "parameters.simulation_time"
 STOP_TIME = 200
 
 
-def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, limit=0, verbose=0):
+def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, b=1.5, limit=0, verbose=0):
     N = int((math.log(delta)) / (math.log(1 - epsilon)))
     if verbose > 0:
         print "N = " + str(N)
@@ -30,6 +30,10 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     start_time = time.time()
 
     max_N = 0
+    n = len(adm_parameter)
+    numbers = np.arange(1, n+1)
+    a = 1./sum([float(h)**(-b) for h in numbers])
+    probabilities = {h: a*float(h)**(-b) for h in numbers}
 
     while True:
         admissible_params.update(current_admissible_params)
@@ -39,7 +43,7 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
                 if verbose > 0:
                     print "Maximum number of failures: " + str(max_N)
             model.model.reset()
-            next_param = choose_next_parameter(parameter_space, admissible_params, verbose=verbose)
+            next_param = choose_next_parameter(parameter_space, admissible_params, numbers, probabilities, verbose=verbose)
             if verbose > 1:
                 print "New parameter: " + str(next_param)
             if next_param not in admissible_params:
@@ -67,15 +71,13 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     return admissible_params
 
 
-def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=2):
+def choose_next_parameter(parameter_space, admissible_params, numbers, probabilities, verbose=2):
 
     param_vector = random.choice(list(admissible_params))
     if verbose > 1:
         print "Random admissible parameter: " + str(param_vector)
 
     n = len(param_vector)
-    numbers = np.arange(1, n+1)
-    probabilities = {h: float(h)**(-b) for h in numbers}
 
     number_of_components_to_be_changed = 0
     while number_of_components_to_be_changed == 0:
@@ -83,6 +85,7 @@ def choose_next_parameter(parameter_space, admissible_params, b=2, verbose=2):
         for i in range(0, n):
             h = numbers[i]
             prob_h = probabilities[h]
+            print h, prob_h
             if np.random.random() <= prob_h:
                 number_of_components_to_be_changed = h
 
