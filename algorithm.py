@@ -14,7 +14,7 @@ STOP_TIME_PARAMETER = "parameters.simulation_time"
 STOP_TIME = 1e5
 
 
-def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, limit=0, verbose=0):
+def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, b=1.5, limit=0, verbose=0):
     N = int((math.log(delta)) / (math.log(1 - epsilon)))
     if verbose > 0:
         print "N = " + str(N)
@@ -30,6 +30,10 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     start_time = time.time()
 
     max_N = 0
+    n = len(adm_parameter)
+    numbers = np.arange(1, n+1)
+    a = 1./sum([float(h)**(-b) for h in numbers])
+    probabilities = {h: a*float(h)**(-b) for h in numbers}
 
     while True:
         timer1 = time.time()
@@ -42,7 +46,7 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
                     print "Maximum number of failures: " + str(max_N)
             model.model.reset()
             timer2 = time.time()
-            next_param = choose_next_parameter(parameter_space, admissible_params, model, verbose=verbose)
+            next_param = choose_next_parameter(parameter_space, admissible_params, numbers, probabilities, verbose=verbose)
             print "choose parameter: %f" % (time.time() - timer2)
             if verbose > 1:
                 print "New parameter: " + str(next_param)
@@ -78,15 +82,13 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     return admissible_params
 
 
-def choose_next_parameter(parameter_space, admissible_params, model, b=2, verbose=2):
+def choose_next_parameter(parameter_space, admissible_params, numbers, probabilities, verbose=2):
 
     param_vector = random.choice(list(admissible_params))
     if verbose > 1:
         print "Random admissible parameter: " + str(param_vector)
 
     n = len(param_vector)
-    numbers = np.arange(1, n+1)
-    probabilities = {h: float(h)**(-b) for h in numbers}
 
     number_of_components_to_be_changed = 0
     while number_of_components_to_be_changed == 0:
@@ -111,10 +113,6 @@ def choose_next_parameter(parameter_space, admissible_params, model, b=2, verbos
         new_vector.append(value)
 
     return tuple(new_vector)
-
-def chooseRandomComponents(parameters, number_of_components_to_be_changed):
-    pass
-
 
 
 def bootstrap(model, parameter_space, stop_time):
