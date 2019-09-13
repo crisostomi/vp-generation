@@ -3,26 +3,15 @@ import time
 import numpy as np
 
 
-STOP_TIME_PARAMETER = "parameters.simulation_time"
-STOP_TIME = 1e5
-
-
-def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, b=1.5, limit=0, verbose=0):
-    N = int((math.log(delta)) / (math.log(1 - epsilon)))
-    if verbose > 0:
-        print "N = " + str(N)
-
-    if type(adm_parameter) == dict:
-        adm_parameter = parameter_space.get_array_from_map(adm_parameter)
-
-    if verbose > 1:
-        print "Admissible parameter vector: " + str(adm_parameter)
+def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta, stop_time, b, logger):
+    N = int(math.ceil((math.log(delta)) / (math.log(1 - epsilon))))
 
     admissible_params = {adm_parameter}
     admissible_params_array = list(admissible_params)
     start_time = time.time()
 
     max_N = 0
+    iterations = 0
     n = len(adm_parameter)
     numbers = np.arange(1, n+1)
     a = 1./sum([float(h)**(-b) for h in numbers])
@@ -31,62 +20,43 @@ def get_virtual_patients(model, parameter_space, adm_parameter, epsilon, delta, 
     while True:
         new_parameter_found = False
         for i in range(1, N):
+            iterations += 1
+            if iterations % 1e4 == 0:
+                logger.log_summary(iterations, time.time() - start_time, len(admissible_params))
+
             if i > max_N:
                 max_N = i
-                if verbose > 0:
-                    print "Maximum number of failures: " + str(max_N)
-            model.model.reset()
-            timer_1 = time.time()
-            new_param = choose_next_parameter(parameter_space, admissible_params_array, numbers, probabilities, verbose=verbose)
-            elapsed_time_1 = (time.time() - timer_1)
-            if verbose > 1:
-                print "New parameter: " + str(new_param)
-            timer_2 = time.time()
+            system.model.reset()
+            new_param = choose_next_parameter(parameter_space, admissible_params_array, numbers, probabilities)
+
             if new_param not in admissible_params:
-                elapsed_time_2 = time.time() - timer_2
                 param_map = parameter_space.get_map_from_array(new_param)
-                model.set_parameters(param_map)
+                system.set_parameters(param_map)
                 try:
-                    timer_3 = time.time()
-                    model.simulate(final_time=STOP_TIME, verbose=False)
-                    elapsed_time_3 = time.time() - timer_3
+                    system.simulate(final_time=stop_time, verbose=False)
                 except:
                     continue
-                if model.is_admissible():
-                    if verbose > 1:
-                        print "Parameter is admissible, number of current admissible params: " \
-                              + str(len(admissible_params))
-
-                    if verbose > 0 and len(admissible_params) % 100 == 0:
-                        elapsed_time = time.time() - start_time
-                        print "\n[%.3f s]" % elapsed_time + \
-                              " Number of current admissible params: " + str(len(admissible_params))
-                        print "Random sampling time: %f" % elapsed_time_1
-                        print "Containment check time: %f" % elapsed_time_2
-                        print "Simulation time: %f" % elapsed_time_3
-
+                if system.is_admissible():
+                    logger.log_virtual_patient(param_map, i)
                     admissible_params.add(new_param)
                     admissible_params_array.append(new_param)
                     new_parameter_found = True
-                    if limit != 0 and len(admissible_params) >= limit:
-                        return admissible_params
-
                     break
+
 
         if not new_parameter_found:
             break
 
+
+    logger.log_summary(iterations, time.time()-start_time, len(admissible_params))
     return admissible_params
 
 
-def choose_next_parameter(parameter_space, admissible_params_array, numbers, probabilities, verbose=2):
+def choose_next_parameter(parameter_space, admissible_params_array, numbers, probabilities):
 
     L = len(admissible_params_array)
     i = np.random.randint(0, L)
     param_vector = admissible_params_array[i]
-
-    if verbose > 1:
-        print "Random admissible parameter: " + str(param_vector)
 
     n = len(param_vector)
 
@@ -100,8 +70,6 @@ def choose_next_parameter(parameter_space, admissible_params_array, numbers, pro
                 number_of_components_to_be_changed = h
 
     components_to_be_changed = np.random.choice(np.arange(0, n), number_of_components_to_be_changed)
-    if verbose > 1:
-        print "Components changed: " + str(components_to_be_changed)
 
     new_vector = list()
     for i in range(n):
@@ -123,7 +91,6 @@ def bootstrap(model, parameter_space, stop_time):
             model.simulate(final_time=stop_time, verbose=False)
         except:
             print("bad setup parameters")
-
         if model.is_admissible():
             return parameters
         model.model.reset()

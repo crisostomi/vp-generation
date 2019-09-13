@@ -2,16 +2,8 @@ from enum import Enum
 import numpy as np
 import random
 
-EPSILON_ABOVE_ZERO = 10**(-25)
-
-
-class DiscretizationMethod(Enum):
-    linear = 0
-    geometric = 1
-
-
 class ParameterSpace:
-    def __init__(self, parameters, system, discretization_method=DiscretizationMethod.geometric, prot_discretization_step=10, non_prot_discretization_step=3, epsilon_above_zero=EPSILON_ABOVE_ZERO):
+    def __init__(self, parameters, system, prot_discretization_step, non_prot_discretization_step, smallest_value):
         self.space = dict()
         self.params = list()
 
@@ -19,23 +11,15 @@ class ParameterSpace:
             param_name = "parameters."+param
             discretization_step = prot_discretization_step if self.is_protein(param_name, system) else non_prot_discretization_step
             self.params.append(param_name)
-            if discretization_method == DiscretizationMethod.geometric:
-                self.space[param_name] = np.geomspace(
-                    max(bounds_tuple[0], epsilon_above_zero),
-                    bounds_tuple[1],
-                    num=discretization_step
-                )
-            else:
-                self.space[param_name] = np.linspace(
-                    max(bounds_tuple[0], epsilon_above_zero),
-                    bounds_tuple[1],
-                    num=discretization_step
-                )
+            self.space[param_name] = np.geomspace(
+                max(bounds_tuple[0], smallest_value),
+                bounds_tuple[1],
+                num=discretization_step
+            )
         self.params = tuple(self.params)
 
     def is_protein(self, param, system ):
         return param in system.get_proteins()
-
 
     def get_space(self, parameter_name):
         return self.space[parameter_name]

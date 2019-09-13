@@ -11,6 +11,7 @@ SIMULATION_SUFFIX = "simulation_time"
 
 
 class System:
+
     max = 0
 
     def __init__(self, path):
@@ -38,7 +39,6 @@ class System:
             lb, ub = bounds
             monitor_name = MONITOR_PREFIX + monitor
             monitor_value = self.res[monitor_name][-1]
-            # print monitor_name + str(monitor_value)
             if monitor_value < lb or monitor_value > ub:
                 admissible = False
             else:
