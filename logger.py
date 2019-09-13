@@ -53,8 +53,10 @@ class Logger:
     def find_file_name(self, file_name):
         if os.path.exists(file_name):
             i = 0
+            name, ext = os.path.splitext(file_name)
             while True:
-                new_file_name = file_name + "_%d" % i
+                new_name = name + "_%d" % i
+                new_file_name = new_name + ext
                 if os.path.exists(new_file_name):
                     i += 1
                 else:

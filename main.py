@@ -11,7 +11,7 @@ delta = 0.1
 
 user = getpass.getuser()
 PROJECT_FOLDER = "/home/"+user+"/Dropbox/Tesisti/software/test-cases"
-TEST = "dna-sumoylation"
+TEST = "smallest"
 TEST_FOLDER = PROJECT_FOLDER + "/" + TEST
 MODEL_FOLDER = TEST_FOLDER + "/out"
 SEARCH_FOLDER = TEST_FOLDER+"/search"
