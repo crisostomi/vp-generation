@@ -38,6 +38,7 @@ def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta,
                     continue
                 if system.is_admissible():
                     logger.log_virtual_patient(param_map, i)
+                    logger.log_time_course(system)
                     admissible_params.add(new_param)
                     admissible_params_array.append(new_param)
                     new_parameter_found = True

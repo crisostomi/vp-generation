@@ -53,13 +53,13 @@ class System:
         return admissible
 
     def simulate(self, final_time, verbose=True):
+        opts = self.model.simulate_options()  # Retrieve the default options
         self.set_parameter(PARAMETER_PREFIX + SIMULATION_SUFFIX, final_time)
         if not verbose:
-            opts = self.model.simulate_options()
             opts["CVode_options"]["verbosity"] = 50
             self.res = self.model.simulate(final_time=final_time, options=opts)
         else:
-            self.res = self.model.simulate(final_time=final_time)
+            self.res = self.model.simulate(final_time=final_time, options=opts)
 
     def set_constraints(self, constraints):
         self.constraints = constraints
@@ -98,7 +98,7 @@ class System:
         variables = self.get_variables_name()
         result = []
         for var in variables:
-            regex = '(?<!=(der\())(compartment\w+\.species_[a-zA-Z0-9]+)(?!=(_init))'
+            regex = '(?<!=(der\())(compartment\w+\.species_[a-zA-Z0-9]+_conc)(?!=(_init))'
             m = re.search(regex, var)
             if m is not None:
                 result.append(m.group(0))

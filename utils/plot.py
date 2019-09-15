@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 
-def plot(model, simulation_result, species=[], limit=10):
-    res = simulation_result
+def plot(system, species=[], limit=10):
+    res = system.res
     t = res["time"]
     plt.figure(1)
     if len(species) == 0:
-        species = model.get_model_species()
+        species = system.get_model_species()
 
     for i, s in enumerate(species):
         plt.plot(t, res[s])

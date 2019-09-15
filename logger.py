@@ -5,13 +5,20 @@ INDENT = "\t"
 
 
 class Logger:
-    def __init__(self, file_name):
+    def __init__(self, file_name, time_series_file):
         self.file_name = self.find_file_name(file_name)
+        self.time_series_file = self.find_file_name(time_series_file)
         self.buffer = ""
+        self.time_series_buffer = ""
 
     def write_to_file(self, content, append):
         mod = "a" if append else "w+"
         with open(self.file_name, mod) as f:
+            f.write(content+"\n")
+
+    def write_to_time_series_file(self, content, append):
+        mod = "a" if append else "w+"
+        with open(self.time_series_file, mod) as f:
             f.write(content+"\n")
 
     def log_config(self, test, stop_time, prot_discr_step, non_prot_discr_step, smallest_value, epsilon, delta):
@@ -41,7 +48,9 @@ class Logger:
 
     def flush(self):
         self.write_to_file(self.buffer, True)
+        self.write_to_time_series_file(self.time_series_buffer, True)
         self.buffer = ""
+        self.time_series_buffer = ""
 
     def log_summary(self, iterations, elapsed_time, vp_count):
         content = "\niterations: {}\n".format(iterations)
@@ -63,4 +72,12 @@ class Logger:
                     return new_file_name
         else:
             return file_name
+
+    def log_time_course(self, system):
+        content = "VP\n"
+        for constraint in system.constraints.keys():
+            constrained_species = "compartment_7660."+constraint.replace("_error","")
+            content += "#"+constrained_species+":\n"
+            content += str(system.res[constrained_species])+"\n"
+        self.time_series_buffer += content+"\n"
 
