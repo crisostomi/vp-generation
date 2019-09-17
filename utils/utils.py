@@ -1,10 +1,17 @@
-def get_parameters_from_file(file):
+def get_parameters_from_file(file, parameter_space):
     tuples = []
     with open(file, "r") as f:
         for line in f.readlines():
             tuples.append(eval(line))
-    tuples.pop(0)
-    return tuples
+    parameters = tuples.pop(0)
+    values = tuples.pop(0)
+    map = dict()
+    for i in range(len(parameters)):
+        p = parameters[i]
+        v = values[i]
+        map[p] = v
+
+    return parameter_space.get_array_from_map(map)
 
 
 def save_parameters_to_file(file, parameter_space, parameters):

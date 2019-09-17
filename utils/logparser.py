@@ -147,14 +147,14 @@ if __name__ == '__main__':
     prot['B'] = [PROT_B, MIN_B, MAX_B, ABUND_B, PROT_B_NAME]
     prot['C'] = [PROT_C, MIN_C , MAX_C, ABUND_C, PROT_C_NAME]
     prot['D'] = [PROT_D, MIN_D , MAX_D, ABUND_D, PROT_D_NAME]
-    prot_attrs = prot['A']
+    prot_attrs = prot['C']
     prot_name = prot_attrs[0]
     prot_min = prot_attrs[1]
     prot_max = prot_attrs[2]
     prot_abund = prot_attrs[3]
     prot_bio_name = prot_attrs[4]
     prot_map = get_protein_map(prot_name, map)
-    plot_vps(prot_map, 1e5, MIN_ZOOM_A, MAX_ZOOM_A, prot_abund, prot_bio_name)
+    plot_vps(prot_map, 1e5, prot_min, prot_max, prot_abund, prot_bio_name)
     # scatter_vps(prot_map, 79, prot_min, prot_max, prot_abund, prot_bio_name)
 
 
