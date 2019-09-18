@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import getpass
-import math
 import matplotlib
 import matplotlib.ticker as plticker
 import numpy as np
@@ -22,6 +21,10 @@ MIN_A, MAX_A, MIN_ZOOM_A, MAX_ZOOM_A = 0.85e-8, 1.35e-8, 1.2e-8, 1.32e-8
 MIN_B, MAX_B = 5e-10, 8e-10
 MIN_C, MAX_C = 0, 2e-7
 MIN_D, MAX_D = 0, 2e-7
+
+
+def get_epsilon(N, delta):
+    return 1 - np.power(delta, 1./N)
 
 
 def get_timeseries_from_log(file):
