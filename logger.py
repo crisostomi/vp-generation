@@ -75,8 +75,8 @@ class Logger:
 
     def log_time_course(self, system):
         content = "VP\n"
-        for species in system.get_model_species():
-            for constraint in system.constraints.keys():
+        for constraint in system.constraints.keys():
+            for species in system.get_model_species():
                 if constraint.replace("_error", "") in species:
                     content += "#"+species+":\n"
                     content += str(system.res[species])+"\n"
