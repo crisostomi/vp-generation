@@ -79,7 +79,13 @@ class Logger:
             for species in system.get_model_species():
                 if constraint.replace("_error", "") in species:
                     content += "#"+species+":\n"
-                    content += str(system.res[species])+"\n"
+                    map = dict()
+                    content += "["
+                    for i,t in enumerate(system.res['time']):
+                        map[t] = system.res[species][i]
+                    for t in sorted(map.keys()):
+                        content += "("+str(t)+", "+str(map[t])+"),"
+                    content = content[:-1] + "]\n"
                     break
         self.time_series_buffer += content+"\n"
 

@@ -1,7 +1,7 @@
 import math
 import time
 import numpy as np
-
+import traceback
 
 def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta, stop_time, b, logger):
     N = int(math.ceil((math.log(delta)) / (math.log(1 - epsilon))))
@@ -26,17 +26,21 @@ def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta,
 
             if i > max_N:
                 max_N = i
+                # print(i)
             system.model.reset()
             new_param = choose_next_parameter(parameter_space, admissible_params_array, numbers, probabilities)
-
+            # print("WTF IS HAPPENING")
             if new_param not in admissible_params:
                 param_map = parameter_space.get_map_from_array(new_param)
                 system.set_parameters(param_map)
                 try:
+                    # print("SI BLOCCA QUI")
                     system.simulate(final_time=stop_time, verbose=False)
                 except:
+                    # traceback.print_exc()
                     continue
                 if system.is_admissible():
+                    # print("VP FOUND")
                     logger.log_virtual_patient(param_map, i)
                     logger.log_time_course(system)
                     admissible_params.add(new_param)
