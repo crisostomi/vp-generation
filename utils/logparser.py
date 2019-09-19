@@ -3,24 +3,17 @@ import getpass
 import matplotlib
 import matplotlib.ticker as plticker
 import numpy as np
+import re
 
 user = getpass.getuser()
 PROJECT_FOLDER = "/home/"+user+"/Dropbox/Tesisti/software/test-cases"
 TEST = "dna-sumoylation"
-OUT_FOLDER = PROJECT_FOLDER+"/"+TEST+"/search/"
-LOG_FILE = OUT_FOLDER+"time_series_5.txt"
-PROT_A,PROT_A_NAME = "compartment_7660.species_212181_conc", "DNMT3A"
-PROT_B,PROT_B_NAME = "compartment_7660.species_212316_conc", "DNMT3B"
-PROT_C,PROT_C_NAME = "compartment_7660.species_912481_conc", "UBE2I"
-PROT_D,PROT_D_NAME = "compartment_7660.species_212287_conc", "DNMT1"
-ABUND_A = 1.1139709952396766E-8
-ABUND_B = 6.531052806376618E-10
-ABUND_C = 1.425882873906786E-7
-ABUND_D = 1.0566810583416363E-8
-MIN_A, MAX_A, MIN_ZOOM_A, MAX_ZOOM_A = 0.85e-8, 1.35e-8, 1.2e-8, 1.32e-8
-MIN_B, MAX_B = 5e-10, 8e-10
-MIN_C, MAX_C = 0, 2e-7
-MIN_D, MAX_D = 0, 2e-7
+TEST_FOLDER = PROJECT_FOLDER + "/" + TEST
+SEARCH_FOLDER = TEST_FOLDER + "/search"
+OUT_FOLDER = TEST_FOLDER + "/out"
+TIME_SERIES_FILE = SEARCH_FOLDER + "/" + "time_series_5.txt"
+VP_COLOR = '#1f77b4'
+ABUNDANCE_COLOR = "black"
 
 
 def get_epsilon(N, delta):
@@ -28,7 +21,6 @@ def get_epsilon(N, delta):
 
 
 # returns map['proteina']['t'] = [conc_vp_0, ... , conc_vp_n]
-
 def get_timeseries_from_log(file):
     map = dict()
     with open(file, "r") as f:
@@ -62,7 +54,6 @@ def get_timeseries_to_plot(file):
             for species in species_list:
                 species_name = species.split(':')[0]
                 species_timeSeries_list = eval(species.split(':')[1])
-                # map.setdefault((species_name, i), []).append(species_timeSeries_list)
                 map[(species_name, i)] = species_timeSeries_list
     return map
 
@@ -74,28 +65,31 @@ def get_protein_map(protein_name, map):
             map_prot[t] = map[(prot, t)]
     return map_prot
 
+
 def plot_vps(map_prot, time, ymin, ymax, abundance, prot_name):
+    map_prot = get_protein_map(prot_name, map_prot)
+    abundance = abundance[prot_name]
     V = range(len(map_prot.keys())) # num of VPS
     fig, ax = plt.subplots()
     for vp in sorted(map_prot.keys()):                  # for list of vp_list_of_concs in y
         vp_time_series = map_prot[vp]
         t = [ tup[0] for tup in vp_time_series ]
         conc = [ tup[1] for tup in vp_time_series ]
-        # distr = np.linspace(0, time, num=T)
-        ax.plot(t, conc, color='#1f77b4', alpha=0.5)# marker='o',edgecolors='b', s=10
+        ax.plot(t, conc, color=VP_COLOR, alpha=0.5)
+
     ax.grid(alpha=0.5)
     # plt.ylim(ymin=ymin, ymax=ymax)
 
     plt.xlabel("hours")
     plt.ylabel("mol/L")
-    ax.set_title("concentration of species "+prot_name)
+    ax.set_title("concentration of "+get_species_name(prot_name))
 
     formatter = matplotlib.ticker.FuncFormatter(lambda ms, x: int(ms/3600))
     ax.xaxis.set_major_formatter(formatter)
 
     T = range(int(time))
-    abundance_points = [abundance for i in T]
-    ax.plot(abundance_points, linestyle='dashed', color="black", alpha=0.5, label="abundance")
+    abundance_points = [abundance for _ in T]
+    ax.plot(abundance_points, linestyle='dashed', color=ABUNDANCE_COLOR, alpha=1, label="abundance")
     # upper_bound = abundance + (abundance * 0.2)
 
     # upper_line = [upper_bound for i in T]
@@ -107,22 +101,51 @@ def plot_vps(map_prot, time, ymin, ymax, abundance, prot_name):
     plt.show()
 
 
+def get_abundances(map_prot):
+    abundances = dict()
+    with open(OUT_FOLDER + "/Monitor.mo", "r") as f:
+        abundances_file_content = f.read()
+
+    proteins = {prot for prot, vp in map_prot.keys()}
+    for prot in proteins:
+        for line in abundances_file_content.splitlines():
+            prot_name = prot.split(".")[1] + "_abundance"
+            if prot_name in line:
+                abundance = float(line.split("=")[1].strip(" ;"))
+                abundances[prot] = abundance
+                break
+
+    return abundances
+
+
+def get_species_name(species_name):
+    regex = "\w+\.(species\_[0-9]+)\_\w+"
+    m = re.match(regex, species_name)
+    return m.group(1)
+
+
 if __name__ == '__main__':
     # map = get_timeseries_from_log(LOG_FILE)
-    map = get_timeseries_to_plot(LOG_FILE)
-    prot = dict()
-    prot['A'] = [PROT_A, MIN_A, MAX_A, ABUND_A, PROT_A_NAME]
-    prot['B'] = [PROT_B, MIN_B, MAX_B, ABUND_B, PROT_B_NAME]
-    prot['C'] = [PROT_C, MIN_C , MAX_C, ABUND_C, PROT_C_NAME]
-    prot['D'] = [PROT_D, MIN_D , MAX_D, ABUND_D, PROT_D_NAME]
-    for letter in ['A','B','C','D']:
-        prot_attrs = prot[letter]
-        prot_name = prot_attrs[0]
-        prot_min = prot_attrs[1]
-        prot_max = prot_attrs[2]
-        prot_abund = prot_attrs[3]
-        prot_bio_name = prot_attrs[4]
-        prot_map = get_protein_map(prot_name, map)
-        plot_vps(prot_map, 1e5, prot_min, prot_max, prot_abund, prot_bio_name)
+    map = get_timeseries_to_plot(TIME_SERIES_FILE)
+    # prot = dict()
+    # prot['A'] = [PROT_A, MIN_A, MAX_A, ABUND_A, PROT_A_NAME]
+    # prot['B'] = [PROT_B, MIN_B, MAX_B, ABUND_B, PROT_B_NAME]
+    # prot['C'] = [PROT_C, MIN_C , MAX_C, ABUND_C, PROT_C_NAME]
+    # prot['D'] = [PROT_D, MIN_D , MAX_D, ABUND_D, PROT_D_NAME]
+    # for letter in ['A','B','C','D']:
+    #     prot_attrs = prot[letter]
+    #     prot_name = prot_attrs[0]
+    #     prot_min = prot_attrs[1]
+    #     prot_max = prot_attrs[2]
+    #     prot_abund = prot_attrs[3]
+    #     prot_bio_name = prot_attrs[4]
+    #     prot_map = get_protein_map(prot_name, map)
+    #     plot_vps(prot_map, 1e5, prot_min, prot_max, prot_abund, prot_bio_name)
+    abundances = get_abundances(map)
+
+    for protein in abundances.keys():
+        print "Plotting %s..." % protein
+        plot_vps(map, 1e5, None, None, abundances, protein)
+
 
 
