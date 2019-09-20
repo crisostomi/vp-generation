@@ -3,7 +3,7 @@ import time
 import numpy as np
 import traceback
 
-def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta, stop_time, b, logger):
+def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta, stop_time, b, logger, method="CVode", steps="1e3"):
     N = int(math.ceil((math.log(delta)) / (math.log(1 - epsilon))))
 
     admissible_params = {adm_parameter}
@@ -32,9 +32,13 @@ def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta,
                 param_map = parameter_space.get_map_from_array(new_param)
                 system.set_parameters(param_map)
                 try:
-                    system.simulate(final_time=stop_time, verbose=False)
-                except:
-                    # traceback.print_exc()
+                    system.simulate(final_time=stop_time, verbose=False, method=method, steps=steps)
+                except KeyboardInterrupt:
+                    print "Algorithm interrupted"
+                    logger.log_summary(iterations, time.time() - start_time, len(admissible_params))
+                    return admissible_params
+                except Exception:
+                    traceback.print_exc()
                     continue
                 if system.is_admissible():
                     logger.log_virtual_patient(param_map, i)
@@ -44,10 +48,8 @@ def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta,
                     new_parameter_found = True
                     break
 
-
         if not new_parameter_found:
             break
-
 
     logger.log_summary(iterations, time.time()-start_time, len(admissible_params))
     return admissible_params
