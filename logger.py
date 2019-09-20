@@ -10,6 +10,8 @@ class Logger:
         self.time_series_file = self.find_file_name(time_series_file)
         self.buffer = ""
         self.time_series_buffer = ""
+        self.vp_count = 0
+        self.time_series_count = 0
 
     def write_to_file(self, content, append):
         mod = "a" if append else "w+"
@@ -37,14 +39,15 @@ class Logger:
         content = "Parameter space: \n"
         for param in parameter_space.params:
             space = parameter_space.space[param]
-            content += INDENT+"{}: {}\n".format(param, space)
+            content += INDENT+"{}: {}\n".format(param, list(space))
         self.write_to_file(content, True)
 
     def log_virtual_patient(self, virtual_patient, failures):
-        content = "VP: \n"
+        content = "VP: %d\n" % self.vp_count
         content += INDENT+"failures: {}\n".format(failures)
         content += INDENT+str(virtual_patient)+"\n"
         self.buffer += content
+        self.vp_count += 1
 
     def flush(self):
         self.write_to_file(self.buffer, True)
@@ -74,7 +77,7 @@ class Logger:
             return file_name
 
     def log_time_course(self, system):
-        content = "VP\n"
+        content = "VP: %d\n" % self.time_series_count
         for constraint in system.constraints.keys():
             for species in system.get_model_species():
                 if constraint.replace("_error", "") in species:
@@ -88,4 +91,5 @@ class Logger:
                     content = content[:-1] + "]\n"
                     break
         self.time_series_buffer += content+"\n"
+        self.time_series_count += 1
 

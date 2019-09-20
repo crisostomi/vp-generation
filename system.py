@@ -52,11 +52,14 @@ class System:
 
         return admissible
 
-    def simulate(self, final_time, verbose=True):
+    def simulate(self, final_time, verbose=True, method="CVode", steps=None):
         opts = self.model.simulate_options()  # Retrieve the default options
+        opts["solver"] = method
+        if method == "CVode" and steps is not None:
+            opts["CVode_options"]["maxh"] = 1. * final_time / steps
         self.set_parameter(PARAMETER_PREFIX + SIMULATION_SUFFIX, final_time)
         if not verbose:
-            opts["CVode_options"]["verbosity"] = 50
+            opts[method + "_options"]["verbosity"] = 50
             self.res = self.model.simulate(final_time=final_time, options=opts)
         else:
             self.res = self.model.simulate(final_time=final_time, options=opts)
