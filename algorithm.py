@@ -33,10 +33,6 @@ def get_virtual_patients(system, parameter_space, adm_parameter, epsilon, delta,
                 system.set_parameters(param_map)
                 try:
                     system.simulate(final_time=stop_time, verbose=False, method=method, steps=steps)
-                except KeyboardInterrupt:
-                    print "Algorithm interrupted"
-                    logger.log_summary(iterations, time.time() - start_time, len(admissible_params))
-                    return admissible_params
                 except Exception:
                     traceback.print_exc()
                     continue
